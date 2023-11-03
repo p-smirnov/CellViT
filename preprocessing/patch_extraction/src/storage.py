@@ -23,7 +23,7 @@ class Storage:
         * Output-Path/WSI-Name
             * metadata.yaml: Metadata of the WSI
             * annotation_masks: preview images of annotations
-            * patches: store extracted patches with each path "wsi_name_row_col.png"
+            * patches: store extracted patches with each path "wsi_name_row_col.npy"
             * metadata: store metadata for each path "wsi_name_row_col.yaml"
             * thumbnails: WSI thumbnails
             * tissue masks: Masks of tissue detection
@@ -155,11 +155,11 @@ class Storage:
 
         row = patch_metadata["row"]
         col = patch_metadata["col"]
-        patch_fname = f"{self.wsi_name}_{row}_{col}.png"
+        patch_fname = f"{self.wsi_name}_{row}_{col}.npy"
         patch_yaml_name = f"{self.wsi_name}_{row}_{col}.yaml"
 
         # Save the patch
-        Image.fromarray(patch).save(self.patches_path / patch_fname)
+        np.save(self.patches_path / patch_fname, patch)
 
         # Save the metadata
         with open(self.patch_metadata_path / patch_yaml_name, "w") as yaml_file:

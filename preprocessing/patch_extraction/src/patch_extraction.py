@@ -710,7 +710,7 @@ class PreProcessor(object):
             "patch_overlap": self.config.patch_overlap * 2,
             "patch_size": self.config.patch_size,
             "stain_normalization": self.config.normalize_stains,
-            "magnification": self.config.target_mag,
+            "magnification": self.config.target_mag if self.config.target_mag is not None else slide.properties.get("openslide.objective-power"),
             "level": level,
         }
 
@@ -808,7 +808,7 @@ class PreProcessor(object):
         for row, col, _ in batch:
             pbar.update()
             # set name
-            patch_fname = f"{wsi_file.stem}_{row}_{col}.png"
+            patch_fname = f"{wsi_file.stem}_{row}_{col}.npy"
             patch_yaml_name = f"{wsi_file.stem}_{row}_{col}.yaml"
 
             if self.config.context_scales is not None:

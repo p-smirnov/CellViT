@@ -130,7 +130,8 @@ class WSI:
             * torch.Tensor: patch as torch.tensor (:,:,3)
             * dict: patch metadata as dictionary
         """
-        patch = Image.open(self.patched_slide_path / "patches" / patch_name)
+        # patch = Image.open(self.patched_slide_path / "patches" / patch_name)
+        patch = np.load(self.patched_slide_path / "patches" / patch_name)
         if transform:
             patch = transform(patch)
 

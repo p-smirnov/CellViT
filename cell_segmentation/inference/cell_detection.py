@@ -47,6 +47,9 @@ from shapely.geometry import Polygon, MultiPolygon
 from torch.utils.data import DataLoader
 from torchvision import transforms as T
 
+import torch.quantization
+import torch.multiprocessing as mp
+
 from cell_segmentation.datasets.cell_graph_datamodel import CellGraphDataWSI
 from cell_segmentation.utils.template_geojson import (
     get_template_point,
@@ -96,6 +99,7 @@ class CellSegmentationInference:
         model_path: Union[Path, str],
         gpu: int,
         enforce_mixed_precision: bool = False,
+        quantize: bool = False,
     ) -> None:
         """Cell Segmentation Inference class.
 
@@ -110,8 +114,10 @@ class CellSegmentationInference:
         """
         self.model_path = Path(model_path)
         self.device = f"cuda:{gpu}"
+        # if quantize:
+        self.device = "cpu"
         self.__instantiate_logger()
-        self.__load_model()
+        self.__load_model(quantize=quantize)
         self.__load_inference_transforms()
         self.__setup_amp(enforce_mixed_precision=enforce_mixed_precision)
 
@@ -125,7 +131,7 @@ class CellSegmentationInference:
         )
         self.logger = logger.create_logger()
 
-    def __load_model(self) -> None:
+    def __load_model(self, quantize) -> None:
         """Load model and checkpoint and load the state_dict"""
         self.logger.info(f"Loading model: {self.model_path}")
 
@@ -138,6 +144,10 @@ class CellSegmentationInference:
             self.model.load_state_dict(model_checkpoint["model_state_dict"])
         )
         self.model.eval()
+        if quantize:
+            self.model = torch.quantization.quantize_dynamic(
+                self.model, {torch.nn.Linear}, dtype=torch.qint8
+            )
         self.model.to(self.device)
 
     def __get_model(
@@ -313,6 +323,11 @@ class CellSegmentationInference:
                         predictions = self.model.forward(patches, retrieve_tokens=True)
                 else:
                     predictions = self.model.forward(patches, retrieve_tokens=True)
+                
+                # Move predictions to cpu
+
+                predictions = {k: v.to("cpu") for k, v in predictions.items()}
+
                 # reshape, apply softmax to segmentation maps
                 # predictions = self.model.reshape_model_output(predictions_, self.device)
                 instance_types, tokens = self.get_cell_predictions_with_tokens(
@@ -927,6 +942,12 @@ class InferenceWSIParser:
             " Default: False",
         )
         parser.add_argument(
+            "--quantize",
+            action="store_true",
+            help="Whether to use mixed precision for inference (enforced). Otherwise network default training settings are used."
+            " Default: False",
+        )
+        parser.add_argument(
             "--batch_size",
             type=int,
             help="Inference batch-size. Default: 8",
@@ -1041,6 +1062,7 @@ if __name__ == "__main__":
         model_path=configuration["model"],
         gpu=configuration["gpu"],
         enforce_mixed_precision=configuration["enforce_amp"],
+        quantize=configuration["quantize"],
     )
 
     if command.lower() == "process_wsi":
