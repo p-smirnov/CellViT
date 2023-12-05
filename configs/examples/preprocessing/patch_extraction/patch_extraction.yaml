@@ -4,7 +4,7 @@ wsi_filelist:                 # Path to a csv-filelist with WSI files (separator
                               # used.Must include full paths to WSIs, including suffixes.Can be used as an replacement for
                               # the wsi_paths option.If both are provided, yields an error. [str] [Optional, defaults to None]
 output_path:                  # Path to the folder where the resulting dataset should be stored [str]
-wsi_extensions:               # The extension of the WSI-files [str] [Optional, defaults to "svs"]
+wsi_extension:                # The extension of the WSI-files [str] [Optional, defaults to "svs"]
 
 # basic setups
 patch_size:                   # The size of the patches in pixel that will be retrieved from the WSI, e.g. 256 for 256px. [][Optional, defaults to 256]
