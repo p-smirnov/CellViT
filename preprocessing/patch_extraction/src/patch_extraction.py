@@ -21,6 +21,7 @@ matplotlib.use("Agg")  # Agg is a non-interactive backend
 
 import numpy as np
 import torch
+import openslide
 from openslide import OpenSlide
 from PIL import Image
 from shapely.affinity import scale
@@ -229,7 +230,7 @@ class PreProcessor(object):
         else:
             logger.info("Using OpenSlide")
             self.deepzoomgenerator = DeepZoomGeneratorOS
-            self.image_loader = OpenSlide
+            self.image_loader = openslide.open_slide
 
     def _set_tissue_detector(self) -> None:
         try:
@@ -563,7 +564,10 @@ class PreProcessor(object):
         logger.info(f"Computing patches for {wsi_file.name}")
 
         # load slide (OS and CuImage/OS)
-        slide = OpenSlide(str(wsi_file))
+        # try:
+        #     slide = OpenSlide(str(wsi_file))
+        # except openslide.lowlevel.OpenSlideUnsupportedFormatError:
+        slide = openslide.open_slide(str(wsi_file))
         slide_cu = self.image_loader(str(wsi_file))
         if "openslide.mpp-x" in slide.properties:
             slide_mpp = float(slide.properties.get("openslide.mpp-x"))
@@ -710,7 +714,7 @@ class PreProcessor(object):
             "patch_overlap": self.config.patch_overlap * 2,
             "patch_size": self.config.patch_size,
             "stain_normalization": self.config.normalize_stains,
-            "magnification": self.config.target_mag if self.config.target_mag is not None else slide.properties.get("openslide.objective-power"),
+            "magnification": self.config.target_mag if self.config.target_mag is not None else slide_properties["magnification"],
             "level": level,
         }
 
@@ -757,7 +761,7 @@ class PreProcessor(object):
         context_tiles = {}
 
         # reload image
-        slide = OpenSlide(str(wsi_file))
+        slide = openslide.open_slide(str(wsi_file))
         slide_cu = self.image_loader(str(wsi_file))
 
         tile_size = patch_to_tile_size(

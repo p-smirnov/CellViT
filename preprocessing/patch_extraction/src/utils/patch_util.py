@@ -562,8 +562,8 @@ def generate_thumbnails(
     for sample_factor in sample_factors:
         thumbnail = slide.get_thumbnail(
             (
-                int(slide.properties["openslide.level[0].width"]) / sample_factor,
-                int(slide.properties["openslide.level[0].height"]) / sample_factor,
+                int(slide.dimensions[0]) / sample_factor,
+                int(slide.dimensions[1]) / sample_factor,
             )
         )
         thumbnails[f"downsample_{sample_factor}"] = thumbnail
@@ -573,8 +573,8 @@ def generate_thumbnails(
         sample_factor = round(mpp / slide_mpp)
         thumbnail = slide.get_thumbnail(
             (
-                int(slide.properties["openslide.level[0].width"]) / sample_factor,
-                int(slide.properties["openslide.level[0].height"]) / sample_factor,
+                int(slide.dimensions[0]) / sample_factor,
+                int(slide.dimensions[1]) / sample_factor,
             )
         )
         thumbnails[f"mpp_{mpp}"] = thumbnail
@@ -582,8 +582,8 @@ def generate_thumbnails(
     sample_factor = round(5 / slide_mpp)
     thumbnail = slide.get_thumbnail(
         (
-            int(slide.properties["openslide.level[0].width"]) / sample_factor,
-            int(slide.properties["openslide.level[0].height"]) / sample_factor,
+            int(slide.dimensions[0]) / sample_factor,
+            int(slide.dimensions[1]) / sample_factor,
         )
     )
     thumbnails["thumbnail"] = thumbnail

@@ -72,6 +72,7 @@ class WSI:
                 self.metadata = yaml.safe_load(metadata_yaml)
             except yaml.YAMLError as exc:
                 print(exc)
+        self.metadata["magnification"] = float(self.metadata["magnification"])
         self.metadata["label_map_inverse"] = {
             v: k for k, v in self.metadata["label_map"].items()
         }
